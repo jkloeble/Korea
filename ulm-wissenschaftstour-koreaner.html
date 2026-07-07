@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ulm Wissenschaftstour</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;700;900&family=Black+Han+Sans&display=swap" rel="stylesheet">
+<style>
+/* ===================== TOKENS ===================== */
+:root{
+  --ink:#1B2A44;
+  --ink-soft:#3A4B68;
+  --paper:#F5F1E7;
+  --paper-raised:#FBF8F1;
+  --ochre:#C08A3E;
+  --teal:#3E7C8C;
+  --rust:#B5533C;
+  --gold:#C9A227;
+  --line: rgba(27,42,68,0.16);
+
+  --font-display:'Fraunces', serif;
+  --font-body:'Inter', system-ui, sans-serif;
+  --font-mono:'JetBrains Mono', monospace;
+
+  --radius: 4px;
+  --radius-lg: 10px;
+  --shadow: 0 10px 30px -12px rgba(27,42,68,0.35);
+  --transition: 0.3s ease;
+  --wrap: 820px;
+}
+
+/* Anime theme — tuned for AA-readable contrast: darker ink, brighter accents kept purely decorative */
+html[data-theme="anime"]{
+  --ink:#241634;
+  --ink-soft:#5A4778;
+  --paper:#FFF6FA;
+  --paper-raised:#FFFFFF;
+  --ochre:#FF6FA5;
+  --teal:#00947F;
+  --rust:#6C4FE0;
+  --gold:#FFB84D;
+  --line: rgba(108,79,224,0.22);
+
+  --font-display:'Black Han Sans', 'Fraunces', sans-serif;
+  --radius: 16px;
+  --radius-lg: 22px;
+  --shadow: 0 14px 34px -10px rgba(108,79,224,0.4);
+}
+
+html[lang="ko"] body{ font-family:'Noto Sans KR', var(--font-body); }
+html[lang="ko"] .font-display{ font-family: var(--font-display); letter-spacing:0.5px; }
+
+*{ box-sizing:border-box; }
+html,body{ margin:0; padding:0; }
+body{
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  transition: background var(--transition), color var(--transition);
+}
+h1,h2,h3,.font-display{ font-family: var(--font-display); font-weight:600; margin:0; }
+p{ margin:0; }
+button{ font-family:inherit; }
+a{ color: var(--teal); }
+
+.wrap{ max-width: var(--wrap); margin:0 auto; padding: 0 20px; }
+
+:focus-visible{ outline: 3px solid var(--teal); outline-offset: 3px; border-radius: 3px; }
+
+@media (prefers-reduced-motion: reduce){
+  *{ animation:none !important; transition:none !important; }
+}
+
+/* ambient background: soft glow (classic-safe) + manga screentone dots (anime only) */
+html[data-theme="anime"] body{
+  background-image:
+    radial-gradient(circle at 15% 8%, rgba(255,111,165,0.14), transparent 40%),
+    radial-gradient(circle at 90% 15%, rgba(0,148,127,0.12), transparent 45%),
+    radial-gradient(circle, rgba(36,22,52,0.07) 1px, transparent 1.6px);
+  background-size: auto, auto, 15px 15px;
+}
+
+/* ===================== MODE SWITCHING ===================== */
+#tourSection{ display:none; }
+body.mode-tour #tourSection{ display:block; }
+body.mode-tour #overviewSections{ display:none; }
+
+/* ===================== HERO / LANGUAGE DIAL ===================== */
+.hero{ position:relative; padding: 56px 0 40px; text-align:center; overflow:hidden; }
+.hero::before{
+  content:"";
+  position:absolute; inset:0 0 auto 0; height:100%;
+  background: linear-gradient(180deg, rgba(27,42,68,0.05), transparent 70%);
+  pointer-events:none;
+  transition: background var(--transition);
+}
+html[data-theme="anime"] .hero::before{
+  background: linear-gradient(180deg, rgba(255,111,165,0.10), transparent 75%);
+}
+/* manga "impact burst" radiating behind the hero title */
+html[data-theme="anime"] .hero::after{
+  content:"";
+  position:absolute; top:6%; left:50%; width:380px; height:380px;
+  transform:translate(-50%,-6%);
+  background: repeating-conic-gradient(from 0deg, rgba(255,111,165,0.16) 0deg 3deg, transparent 3deg 11deg);
+  border-radius:50%;
+  -webkit-mask: radial-gradient(circle, black 35%, transparent 72%);
+  mask: radial-gradient(circle, black 35%, transparent 72%);
+  pointer-events:none;
+  z-index:0;
+}
+.hero .wrap{ position:relative; z-index:1; }
+
+/* --- the dial --- */
+.dial{ position:relative; width: 224px; height:224px; margin: 0 auto 20px; }
+.dial-orbit{ position:absolute; inset:-14px; border-radius:50%; border: 1px dashed var(--line); animation: spin 50s linear infinite; }
+.dial-orbit::before, .dial-orbit::after{ content:""; position:absolute; width:5px; height:5px; border-radius:50%; background: var(--gold); opacity:0.7; }
+.dial-orbit::before{ top:-2px; left:50%; transform:translateX(-50%); }
+.dial-orbit::after{ bottom:6%; right:8%; }
+@keyframes spin{ to{ transform: rotate(360deg); } }
+
+.dial-ticks{ position:absolute; inset:0; }
+.tick{ position:absolute; left:50%; top:6px; width:2px; height:9px; background: var(--ink); opacity:0.25; transform-origin: 1px 106px; }
+.tick.major{ height:13px; opacity:0.4; background: var(--ochre); }
+
+.dial-face{
+  position:absolute; inset: 22px; border-radius:50%;
+  border: 2px solid var(--ink); background: var(--paper-raised);
+  box-shadow: var(--shadow);
+  display:flex; align-items:center; justify-content:center;
+  transition: border-color var(--transition), background var(--transition), box-shadow var(--transition);
+}
+.dial-face svg{ width: 46%; height:46%; opacity:0.6; color: var(--ink); }
+.dial-face.flash{ animation: dialFlash 0.55s ease; }
+@keyframes dialFlash{
+  0%{ box-shadow: var(--shadow), 0 0 0 0 rgba(201,162,39,0.55); }
+  100%{ box-shadow: var(--shadow), 0 0 0 22px rgba(201,162,39,0); }
+}
+html[data-theme="anime"] .dial-face{ border-width:3px; box-shadow: 5px 5px 0 var(--ink); }
+
+.needle{
+  position:absolute; left:50%; top:50%; width:4px; height:72px;
+  margin-left:-2px; margin-top:-72px; transform-origin: 50% 100%;
+  transform: rotate(0deg); transition: transform 0.6s cubic-bezier(.34,1.4,.4,1);
+  pointer-events:none;
+}
+.needle::before{ content:""; position:absolute; top:0; left:50%; width:0; height:0; transform: translateX(-50%); border-left:4px solid transparent; border-right:4px solid transparent; border-bottom:14px solid var(--rust); }
+.needle::after{ content:""; position:absolute; bottom:-3px; left:50%; width:9px; height:9px; transform: translateX(-50%); background: var(--ink); border-radius:50%; border: 2px solid var(--gold); }
+
+.lang-btn{
+  position:absolute; width:58px; height:58px; border-radius:50%;
+  border: 2px solid var(--ink); background: var(--paper-raised); color: var(--ink);
+  font-family: var(--font-mono); font-size: 12px; font-weight:600; letter-spacing:0.5px;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  transition: transform 0.25s ease, background var(--transition), color var(--transition), border-color var(--transition), box-shadow var(--transition);
+  z-index:2;
+}
+.lang-btn:hover{ transform: scale(1.08); }
+.lang-btn[aria-pressed="true"]{
+  background: var(--ink); color: var(--paper); border-color: var(--gold);
+  box-shadow: 0 0 0 4px rgba(201,162,39,0.28);
+  animation: pulse 2.4s ease-in-out infinite;
+}
+@keyframes pulse{
+  0%,100%{ box-shadow: 0 0 0 4px rgba(201,162,39,0.28); }
+  50%{ box-shadow: 0 0 0 8px rgba(201,162,39,0.14); }
+}
+html[data-theme="anime"] .lang-btn{ border-width:2.5px; box-shadow: 3px 3px 0 var(--ink); }
+html[data-theme="anime"] .lang-btn[aria-pressed="true"]{ box-shadow: 3px 3px 0 var(--ink), 0 0 0 4px rgba(255,184,77,0.35); }
+.lang-btn[data-lang="de"]{ top:-4px; left:50%; transform:translateX(-50%); }
+.lang-btn[data-lang="en"]{ bottom: 18px; right:-14px; }
+.lang-btn[data-lang="ko"]{ bottom: 18px; left:-14px; }
+
+/* sparkle particles spawned on language switch */
+.sparkle-particle{
+  position:absolute; pointer-events:none; z-index:5;
+  animation: sparkleFloat 1.15s ease-out forwards;
+}
+@keyframes sparkleFloat{
+  0%{ transform: translate(0,0) scale(0) rotate(0deg); opacity:0; }
+  18%{ opacity:1; transform: scale(1.1) rotate(15deg); }
+  100%{ transform: translate(var(--dx), -64px) scale(0.3) rotate(60deg); opacity:0; }
+}
+
+.eyebrow{ font-family: var(--font-mono); font-size:12px; letter-spacing: 2px; text-transform:uppercase; color: var(--teal); margin-bottom:10px; }
+.hero h1{ font-size: clamp(28px, 6vw, 42px); line-height:1.15; margin-bottom:14px; }
+.hero .subtitle{ max-width: 540px; margin: 0 auto 26px; color: var(--ink-soft); font-size:16px; }
+.hero-ctas{ display:flex; flex-wrap:wrap; gap:12px; justify-content:center; }
+.cta{
+  display:inline-flex; align-items:center; gap:8px;
+  background: var(--ink); color: var(--paper); border:none;
+  padding: 14px 26px; border-radius: var(--radius);
+  font-size:15px; font-weight:600; cursor:pointer;
+  transition: transform 0.2s ease, background var(--transition), box-shadow var(--transition);
+}
+.cta:hover{ transform: translateY(-2px); }
+html[data-theme="anime"] .cta{
+  background: linear-gradient(135deg, var(--ochre), var(--rust)); color:#fff; border-radius: 999px;
+  border: 2.5px solid var(--ink); box-shadow: 4px 4px 0 var(--ink);
+}
+html[data-theme="anime"] .cta:hover{ transform: translate(2px,2px); box-shadow: 2px 2px 0 var(--ink); }
+.cta-secondary{ background:none; color: var(--ink); border: 1px solid var(--ink); }
+html[data-theme="anime"] .cta-secondary{ border-radius:999px; border: 2.5px solid var(--rust); color: var(--rust); background: var(--paper-raised); box-shadow: 4px 4px 0 var(--ink); }
+html[data-theme="anime"] .cta-secondary:hover{ transform: translate(2px,2px); box-shadow: 2px 2px 0 var(--ink); }
+
+/* ===================== STATS DASHBOARD ===================== */
+.stats{ display:grid; grid-template-columns: repeat(2, 1fr); gap:1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius-lg); overflow:hidden; margin: 0 auto 8px; }
+.stat{ background: var(--paper-raised); padding: 16px 14px; text-align:center; }
+.stat .value{ font-family: var(--font-mono); font-size: 20px; font-weight:600; color: var(--rust); }
+.stat .label{ font-size:11px; text-transform:uppercase; letter-spacing:1px; color: var(--ink-soft); margin-top:4px; }
+@media (min-width:600px){ .stats{ grid-template-columns: repeat(4,1fr); } }
+html[data-theme="anime"] .stats{ border-width:2px; border-color: var(--ink); box-shadow: 4px 4px 0 var(--ink); border-radius: var(--radius-lg); }
+
+/* ===================== SECTION HEAD ===================== */
+.section{ padding: 44px 0; }
+.section-head{ margin-bottom: 26px; text-align:center; }
+.section-head h2{ font-size: clamp(22px,4vw,28px); margin-bottom:8px; }
+.section-head p{ color: var(--ink-soft); font-size:14px; max-width:480px; margin:0 auto; }
+
+/* ===================== ROUTE DIAGRAM (overview) ===================== */
+.flow{ position:relative; }
+.flow::before{
+  content:""; position:absolute; left: 25px; top: 25px; bottom: 25px; width: 2px;
+  background: repeating-linear-gradient(to bottom, var(--ink) 0 6px, transparent 6px 12px);
+  opacity:0.3;
+}
+html[data-theme="anime"] .flow::before{
+  background: repeating-linear-gradient(to bottom, var(--rust) 0 4px, transparent 4px 10px);
+  opacity:0.55;
+}
+.flow-node{ position:relative; display:flex; align-items:center; gap:14px; margin-bottom:10px; cursor:pointer; background:none; border:none; padding:0; width:100%; text-align:left; }
+.flow-marker{
+  position:relative; z-index:1; flex:0 0 50px; width:50px; height:50px; border-radius:50%;
+  background: var(--paper-raised); border: 2px solid var(--ink);
+  display:flex; align-items:center; justify-content:center; color: var(--ink);
+  transition: transform var(--transition), background var(--transition), box-shadow var(--transition);
+}
+.flow-marker svg{ width:24px; height:24px; }
+.flow-node:hover .flow-marker{ transform: scale(1.08); box-shadow: var(--shadow); background: var(--gold); color: var(--paper-raised); }
+html[data-theme="anime"] .flow-marker{ border-width:2.5px; box-shadow: 3px 3px 0 var(--ink); transition: transform 0.4s cubic-bezier(.34,1.56,.64,1), background var(--transition); }
+html[data-theme="anime"] .flow-node:hover .flow-marker{ transform: scale(1.12) rotate(-8deg); box-shadow: 1px 1px 0 var(--ink); }
+.flow-body{
+  flex:1; background: var(--paper-raised); border: 1px solid var(--line); border-radius: var(--radius-lg);
+  padding: 12px 16px; display:flex; align-items:center; justify-content:space-between; gap:10px;
+  transition: border-color var(--transition), box-shadow var(--transition), transform 0.2s ease;
+}
+.flow-node:hover .flow-body{ border-color: var(--rust); box-shadow: 0 6px 16px -10px rgba(27,42,68,0.4); }
+html[data-theme="anime"] .flow-body{ border-width:2.5px; box-shadow: 4px 4px 0 var(--ink); }
+html[data-theme="anime"] .flow-node:hover .flow-body{ box-shadow: 1px 1px 0 var(--ink); transform: translate(3px,3px); }
+.flow-text .name{ font-size:15.5px; font-family: var(--font-display); font-weight:600; }
+.flow-text .short{ font-size:12.5px; color: var(--ink-soft); margin-top:2px; display:block; }
+.flow-meta{ display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex-shrink:0; }
+.flow-duration{ font-family: var(--font-mono); font-size:11px; background: var(--paper); color: var(--ink-soft); padding: 3px 8px; border-radius:999px; border:1px solid var(--line); white-space:nowrap; }
+.flow-go{ font-family: var(--font-mono); font-size:11px; color: var(--ink); font-weight:700; }
+.walk-link{ display:flex; align-items:center; gap:8px; padding: 6px 0 6px 65px; margin-bottom: 6px; font-family: var(--font-mono); font-size:12px; color: var(--ink-soft); }
+.walk-link svg{ width:15px; height:15px; flex-shrink:0; }
+
+/* ===================== TOUR MODE (step through) ===================== */
+.tour-topbar{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+.back-link{ display:inline-flex; align-items:center; gap:6px; background:none; border:none; cursor:pointer; color: var(--ink-soft); font-size:13px; font-weight:600; padding:6px 0; }
+.back-link:hover{ color: var(--ink); }
+.tour-progress-label{ font-family: var(--font-mono); font-size:12px; color: var(--ink-soft); }
+
+.progress-bar{ position:relative; height:6px; background: var(--line); border-radius:4px; overflow:visible; margin: 12px 0 30px; }
+.progress-bar-inner{ height:100%; border-radius:4px; overflow:hidden; }
+.progress-fill{ position:relative; height:100%; background: linear-gradient(90deg, var(--teal), var(--rust)); border-radius:4px; transition: width 0.4s ease; }
+.progress-spark{ display:none; }
+html[data-theme="anime"] .progress-bar{ height:10px; border:2px solid var(--ink); border-radius:999px; background: var(--paper-raised); }
+html[data-theme="anime"] .progress-fill{ border-radius:999px; }
+html[data-theme="anime"] .progress-spark{
+  display:inline-flex; position:absolute; right:-9px; top:50%; transform:translateY(-50%);
+  font-size:16px; color: var(--gold); text-shadow: 0 0 3px rgba(0,0,0,0.15);
+  animation: twinkle 1.2s ease-in-out infinite;
+}
+@keyframes twinkle{ 0%,100%{ transform:translateY(-50%) scale(1); } 50%{ transform:translateY(-50%) scale(1.35); } }
+
+.tour-card{ text-align:center; padding: 6px 0 10px; }
+.tour-icon{
+  width:96px; height:96px; margin:0 auto 18px; border-radius:50%;
+  background: var(--paper-raised); border: 2px solid var(--ink);
+  display:flex; align-items:center; justify-content:center; box-shadow: var(--shadow);
+}
+.tour-icon svg{ width:46px; height:46px; }
+html[data-theme="anime"] .tour-icon{ border-width:3px; box-shadow: 5px 5px 0 var(--ink); }
+.tour-icon.bounce{ animation: bounceIn 0.65s cubic-bezier(.34,1.56,.64,1); }
+@keyframes bounceIn{
+  0%{ transform: scale(0.5) rotate(-15deg); opacity:0; }
+  60%{ transform: scale(1.15) rotate(8deg); opacity:1; }
+  100%{ transform: scale(1) rotate(0); }
+}
+.tour-name{ font-size: clamp(24px,5vw,32px); margin-bottom:10px; }
+.tour-badges{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-bottom:22px; }
+.badge{ font-family: var(--font-mono); font-size:12px; background: var(--paper-raised); color: var(--ink-soft); padding: 5px 12px; border-radius:999px; border:1px solid var(--line); }
+html[data-theme="anime"] .badge{ border-width:2px; border-color: var(--ink); font-weight:600; }
+.tour-short{ font-size:15px; color: var(--ink-soft); font-style:italic; max-width:520px; margin:0 auto 18px; }
+.tour-detail{ font-size:15.5px; text-align:left; max-width:560px; margin:0 auto; }
+
+.fun-fact{
+  margin: 20px auto 0; max-width:560px; padding: 14px 18px;
+  background: var(--paper-raised); border-left: 3px solid var(--gold); border-radius: 6px;
+  font-size:14px; text-align:left; color: var(--ink-soft); position:relative;
+}
+.fun-fact strong{ color: var(--ink); display:block; margin-bottom:3px; font-family: var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:0.5px; }
+/* manga speech-bubble treatment for the fun fact */
+html[data-theme="anime"] .fun-fact{
+  border: 2.5px solid var(--ink); border-left: 2.5px solid var(--ink); border-radius:20px;
+  box-shadow: 4px 4px 0 var(--ink);
+}
+html[data-theme="anime"] .fun-fact::before{
+  content:""; position:absolute; left:26px; bottom:-17px; width:0; height:0;
+  border-left:9px solid transparent; border-right:9px solid transparent; border-top:16px solid var(--ink);
+}
+html[data-theme="anime"] .fun-fact::after{
+  content:""; position:absolute; left:28.5px; bottom:-12px; width:0; height:0;
+  border-left:6.5px solid transparent; border-right:6.5px solid transparent; border-top:11px solid var(--paper-raised);
+}
+
+.tour-next-walk{ margin: 26px auto 0; max-width:560px; display:flex; align-items:center; gap:10px; justify-content:center; font-family: var(--font-mono); font-size:13px; color: var(--ink-soft); font-weight:700; }
+.tour-next-walk svg{ width:17px; height:17px; }
+
+.tour-nav{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:34px; }
+.nav-btn{
+  flex:0 0 auto; display:inline-flex; align-items:center; gap:8px;
+  padding: 13px 20px; border-radius: var(--radius); font-size:14px; font-weight:600; cursor:pointer;
+  border: 1px solid var(--ink); background: var(--paper-raised); color: var(--ink);
+  transition: background var(--transition), color var(--transition), opacity 0.2s, box-shadow var(--transition), transform 0.2s;
+}
+.nav-btn.primary{ background: var(--ink); color: var(--paper); }
+html[data-theme="anime"] .nav-btn.primary{ background: linear-gradient(135deg, var(--ochre), var(--rust)); color:#fff; border-radius:999px; border: 2.5px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); }
+html[data-theme="anime"] .nav-btn{ border-radius:999px; border-width:2.5px; box-shadow: 4px 4px 0 var(--ink); }
+.nav-btn:disabled{ opacity:0.35; cursor:not-allowed; }
+.nav-btn:not(:disabled):hover{ transform: translateY(-1px); }
+html[data-theme="anime"] .nav-btn:not(:disabled):hover{ transform: translate(2px,2px); box-shadow: 2px 2px 0 var(--ink); }
+
+.dots{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+.dot{ width:10px; height:10px; border-radius:50%; background: var(--line); border:none; cursor:pointer; padding:0; transition: background var(--transition), transform 0.2s; }
+.dot.active{ background: var(--rust); transform: scale(1.3); }
+html[data-theme="anime"] .dot{
+  width:15px; height:15px; border-radius:0; background: var(--line);
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+}
+html[data-theme="anime"] .dot.active{ background: var(--rust); transform: scale(1.25); }
+
+/* ===================== FOOTER ===================== */
+footer{ text-align:center; padding: 34px 0 44px; color: var(--ink-soft); font-size:13px; border-top: 1px solid var(--line); }
+
+.icon{ stroke: currentColor; fill:none; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+.icon-ko{ stroke: currentColor; fill:none; stroke-width:2.1; stroke-linecap:round; stroke-linejoin:round; }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute">
+<defs>
+  <!-- classic line icons -->
+  <symbol id="ic-clock" viewBox="0 0 24 24"><circle class="icon" cx="12" cy="12" r="9"/><path class="icon" d="M12 7v5l3.5 2"/></symbol>
+  <symbol id="ic-rocket" viewBox="0 0 24 24"><path class="icon" d="M12 2c2 2 3 6 3 10 0 2-1 4-3 6-2-2-3-4-3-6 0-4 1-8 3-10Z"/><path class="icon" d="M9 15l-3 3M15 15l3 3"/><circle class="icon" cx="12" cy="9" r="1.4"/></symbol>
+  <symbol id="ic-house" viewBox="0 0 24 24"><path class="icon" d="M4 12l8-7 8 7"/><path class="icon" d="M6 11v9h12v-9"/><path class="icon" d="M10 20v-5h4v5"/></symbol>
+  <symbol id="ic-tower" viewBox="0 0 24 24"><path class="icon" d="M9 21l1-16 4-1 1 17"/><path class="icon" d="M8 21h9"/><path class="icon" d="M9.5 9h5"/></symbol>
+  <symbol id="ic-spire" viewBox="0 0 24 24"><path class="icon" d="M12 2l3 8h-6l3-8Z"/><path class="icon" d="M8 10h8l1 11H7l1-11Z"/><path class="icon" d="M10 14h4"/></symbol>
+  <symbol id="ic-figure" viewBox="0 0 24 24"><circle class="icon" cx="12" cy="6" r="2.4"/><path class="icon" d="M8 21l1.5-9h5L16 21"/><path class="icon" d="M9.5 12l-3-2M14.5 12l3-2"/></symbol>
+  <symbol id="ic-river" viewBox="0 0 24 24"><path class="icon" d="M3 9c2 0 2 2 4 2s2-2 4-2 2 2 4 2 2-2 4-2 2 2 4 2"/><path class="icon" d="M3 15c2 0 2 2 4 2s2-2 4-2 2 2 4 2 2-2 4-2 2 2 4 2"/></symbol>
+  <symbol id="ic-walk" viewBox="0 0 24 24"><circle class="icon" cx="13" cy="4" r="1.6"/><path class="icon" d="M10 21l1.5-6-2-2 1-4 3 1 2 3 3 1M9 13l-3 2v6"/></symbol>
+  <symbol id="ic-arrow-left" viewBox="0 0 24 24"><path class="icon" d="M19 12H5M11 6l-6 6 6 6"/></symbol>
+
+  <!-- kawaii / manga icon variants, shown only in Korean mode -->
+  <symbol id="ic-clock-ko" viewBox="0 0 24 24">
+    <circle class="icon-ko" cx="12" cy="12" r="9"/>
+    <path class="icon-ko" d="M12 7v5l3 2"/>
+    <circle cx="9" cy="10.5" r="1" fill="currentColor"/>
+    <circle cx="15" cy="10.5" r="1" fill="currentColor"/>
+    <path class="icon-ko" d="M9.3 15.2c0.9 1 3.5 1 4.4 0"/>
+    <g transform="translate(18,4) rotate(15)"><rect x="-0.9" y="-3.4" width="1.8" height="6.8" rx="0.9" fill="var(--gold)"/><rect x="-3.4" y="-0.9" width="6.8" height="1.8" rx="0.9" fill="var(--gold)"/></g>
+  </symbol>
+  <symbol id="ic-rocket-ko" viewBox="0 0 24 24">
+    <path class="icon-ko" d="M12 2c2.3 2 3.3 6.2 3.3 10 0 2.1-1.2 4.1-3.3 6.1-2.1-2-3.3-4-3.3-6.1 0-3.8 1-8 3.3-10Z"/>
+    <path class="icon-ko" d="M9.2 14.6l-2.6 2.6M14.8 14.6l2.6 2.6"/>
+    <circle cx="10.4" cy="9" r="0.9" fill="currentColor"/>
+    <circle cx="13.6" cy="9" r="0.9" fill="currentColor"/>
+    <path class="icon-ko" d="M10.8 11.6c0.6 0.6 1.8 0.6 2.4 0"/>
+    <g transform="translate(5,19) rotate(-10)"><rect x="-0.7" y="-2.6" width="1.4" height="5.2" rx="0.7" fill="var(--gold)"/><rect x="-2.6" y="-0.7" width="5.2" height="1.4" rx="0.7" fill="var(--gold)"/></g>
+    <g transform="translate(19,17) rotate(20) scale(0.7)"><rect x="-0.9" y="-3.4" width="1.8" height="6.8" rx="0.9" fill="var(--gold)"/><rect x="-3.4" y="-0.9" width="6.8" height="1.8" rx="0.9" fill="var(--gold)"/></g>
+  </symbol>
+  <symbol id="ic-house-ko" viewBox="0 0 24 24">
+    <g transform="skewX(-8)">
+      <path class="icon-ko" d="M4 12l8-7 8 7"/>
+      <path class="icon-ko" d="M6 11v9h12v-9"/>
+      <path d="M12 20v-4.3c-0.9-1.5-2.7-1.1-2.7 0.3 0 1.1 1.3 2 2.7 3.2 1.4-1.2 2.7-2.1 2.7-3.2 0-1.4-1.8-1.8-2.7-0.3Z" fill="var(--rust)"/>
+    </g>
+    <g transform="translate(19,5) rotate(15)"><rect x="-0.8" y="-3" width="1.6" height="6" rx="0.8" fill="var(--gold)"/><rect x="-3" y="-0.8" width="6" height="1.6" rx="0.8" fill="var(--gold)"/></g>
+  </symbol>
+  <symbol id="ic-tower-ko" viewBox="0 0 24 24">
+    <g transform="rotate(-6 12 12)">
+      <path class="icon-ko" d="M9 21l1-16 4-1 1 17"/>
+      <path class="icon-ko" d="M8 21h9"/>
+      <circle cx="10.6" cy="9.5" r="0.8" fill="currentColor"/>
+      <circle cx="13.6" cy="9.2" r="0.8" fill="currentColor"/>
+      <path class="icon-ko" d="M10.8 12.2c0.6 0.5 1.7 0.5 2.3 0"/>
+    </g>
+    <g transform="translate(18,5) rotate(10)"><rect x="-0.8" y="-3" width="1.6" height="6" rx="0.8" fill="var(--gold)"/><rect x="-3" y="-0.8" width="6" height="1.6" rx="0.8" fill="var(--gold)"/></g>
+  </symbol>
+  <symbol id="ic-spire-ko" viewBox="0 0 24 24">
+    <path class="icon-ko" d="M12 2l3 8h-6l3-8Z"/>
+    <path class="icon-ko" d="M8 10h8l1 11H7l1-11Z"/>
+    <circle cx="10.6" cy="15.5" r="0.8" fill="currentColor"/>
+    <circle cx="13.6" cy="15.5" r="0.8" fill="currentColor"/>
+    <path class="icon-ko" d="M10.8 18c0.6 0.5 1.7 0.5 2.3 0"/>
+    <g transform="translate(12,1) scale(1.15)"><rect x="-0.9" y="-3.4" width="1.8" height="6.8" rx="0.9" fill="var(--gold)"/><rect x="-3.4" y="-0.9" width="6.8" height="1.8" rx="0.9" fill="var(--gold)"/></g>
+  </symbol>
+  <symbol id="ic-figure-ko" viewBox="0 0 24 24">
+    <circle class="icon-ko" cx="12" cy="6.5" r="3"/>
+    <path class="icon-ko" d="M9.5 4.3c-0.6-1.4 1-2 1.4-0.7M14.5 4.3c0.6-1.4-1-2-1.4-0.7"/>
+    <circle cx="10.7" cy="6.2" r="0.7" fill="currentColor"/>
+    <circle cx="13.3" cy="6.2" r="0.7" fill="currentColor"/>
+    <path class="icon-ko" d="M8 21l1.5-8.5h5L16 21"/>
+    <g transform="translate(19,10) rotate(15)"><rect x="-0.8" y="-3" width="1.6" height="6" rx="0.8" fill="var(--gold)"/><rect x="-3" y="-0.8" width="6" height="1.6" rx="0.8" fill="var(--gold)"/></g>
+  </symbol>
+  <symbol id="ic-river-ko" viewBox="0 0 24 24">
+    <path class="icon-ko" d="M3 10c2 0 2 2 4 2s2-2 4-2 2 2 4 2 2-2 4-2 2 2 4 2"/>
+    <path class="icon-ko" d="M3 15.5c2 0 2 2 4 2s2-2 4-2 2 2 4 2 2-2 4-2 2 2 4 2"/>
+    <circle cx="17" cy="6" r="2" fill="var(--teal)"/>
+    <circle cx="16.3" cy="5.5" r="0.4" fill="var(--paper-raised)"/>
+    <circle cx="17.7" cy="5.5" r="0.4" fill="var(--paper-raised)"/>
+    <g transform="translate(6,4) rotate(-10)"><rect x="-0.7" y="-2.6" width="1.4" height="5.2" rx="0.7" fill="var(--gold)"/><rect x="-2.6" y="-0.7" width="5.2" height="1.4" rx="0.7" fill="var(--gold)"/></g>
+  </symbol>
+  <symbol id="ic-walk-ko" viewBox="0 0 24 24">
+    <circle class="icon-ko" cx="13" cy="4" r="1.8"/>
+    <path class="icon-ko" d="M10 21l1.5-6-2-2 1-4 3 1 2 3 3 1M9 13l-3 2v6"/>
+    <g transform="translate(19,3) rotate(15) scale(0.7)"><rect x="-0.9" y="-3.4" width="1.8" height="6.8" rx="0.9" fill="var(--gold)"/><rect x="-3.4" y="-0.9" width="6.8" height="1.8" rx="0.9" fill="var(--gold)"/></g>
+  </symbol>
+</defs>
+</svg>
+
+<main id="app">
+
+  <div id="overviewSections">
+    <!-- ===================== LANDING / HERO ===================== -->
+    <section class="hero">
+      <div class="wrap">
+        <div class="dial" id="dial">
+          <div class="dial-orbit"></div>
+          <div class="dial-ticks" id="dialTicks"></div>
+          <div class="dial-face" id="dialFace"><svg viewBox="0 0 24 24"><use href="#ic-clock" id="dialFaceUse"/></svg></div>
+          <div class="needle" id="needle"></div>
+          <button class="lang-btn" data-lang="de" aria-pressed="true" aria-label="Deutsch">DE</button>
+          <button class="lang-btn" data-lang="en" aria-pressed="false" aria-label="English">EN</button>
+          <button class="lang-btn" data-lang="ko" aria-pressed="false" aria-label="한국어">한국어</button>
+        </div>
+        <div class="eyebrow" data-i18n="hero.eyebrow"></div>
+        <h1 class="font-display" data-i18n="hero.title"></h1>
+        <p class="subtitle" data-i18n="hero.subtitle"></p>
+        <div class="hero-ctas">
+          <button class="cta" id="ctaStart"><span data-i18n="hero.ctaPrimary"></span> →</button>
+          <button class="cta cta-secondary" id="ctaDiagram"><span data-i18n="hero.ctaSecondary"></span></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== STATS ===================== -->
+    <div class="wrap">
+      <div class="stats">
+        <div class="stat"><div class="value" id="statDuration">–</div><div class="label" data-i18n="stats.duration"></div></div>
+        <div class="stat"><div class="value" id="statDistance">–</div><div class="label" data-i18n="stats.distance"></div></div>
+        <div class="stat"><div class="value" id="statStops">–</div><div class="label" data-i18n="stats.stops"></div></div>
+        <div class="stat"><div class="value" id="statStart" style="font-size:14px">–</div><div class="label" data-i18n="stats.startPoint"></div></div>
+      </div>
+    </div>
+
+    <!-- ===================== ROUTE DIAGRAM ===================== -->
+    <section class="section" id="diagram">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 class="font-display" data-i18n="diagram.heading"></h2>
+          <p data-i18n="diagram.sub"></p>
+        </div>
+        <div class="flow" id="flowList"></div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="wrap" data-i18n="footer.text"></div>
+    </footer>
+  </div>
+
+  <!-- ===================== TOUR MODE ===================== -->
+  <section id="tourSection">
+    <div class="wrap">
+      <div class="tour-topbar">
+        <button class="back-link" id="backToOverview"><svg viewBox="0 0 24 24" style="width:16px;height:16px"><use href="#ic-arrow-left"/></svg><span data-i18n="tour.backLink"></span></button>
+        <span class="tour-progress-label" id="tourProgressLabel"></span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-bar-inner"><div class="progress-fill" id="progressFill"></div></div>
+        <span class="progress-spark" id="progressSpark">✦</span>
+      </div>
+
+      <div class="tour-card">
+        <div class="tour-icon" id="tourIcon"><svg viewBox="0 0 24 24"><use href="#ic-clock" id="tourIconUse"/></svg></div>
+        <h2 class="tour-name font-display" id="tourName"></h2>
+        <div class="tour-badges">
+          <span class="badge" id="tourDurationBadge"></span>
+          <span class="badge" id="tourWalkBadge"></span>
+        </div>
+        <p class="tour-short" id="tourShort"></p>
+        <p class="tour-detail" id="tourDetail"></p>
+        <div class="fun-fact"><strong id="factLabel"></strong><span id="tourFact"></span></div>
+        <div class="tour-next-walk" id="tourNextWalk" style="display:none">
+          <svg viewBox="0 0 24 24"><use href="#ic-walk" id="tourWalkIconUse"/></svg>
+          <span id="tourNextWalkText"></span>
+        </div>
+      </div>
+
+      <div class="tour-nav">
+        <button class="nav-btn" id="prevBtn"><svg viewBox="0 0 24 24" style="width:16px;height:16px"><use href="#ic-arrow-left"/></svg><span data-i18n="tour.prev"></span></button>
+        <div class="dots" id="dots"></div>
+        <button class="nav-btn primary" id="nextBtn"><span id="nextBtnLabel"></span></button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+/* ===================== DATA ===================== */
+const stations = [
+  { id:1, icon:'ic-clock', duration:15, walkMin:3, walkM:250,
+    de:{ name:"Rathaus Ulm", short:"Ausgangspunkt der Tour: ein gotisches Rathaus mit astronomischer Uhr.",
+      detail:"Das Ulmer Rathaus wurde erstmals 1370 erwähnt und im 14. Jahrhundert prächtig mit Fassadenmalerei versehen. Besonders auffällig: die astronomische Uhr von 1520, die nicht nur die Uhrzeit, sondern auch Mondphasen und den Stand der Tierkreiszeichen anzeigt – ein frühes Meisterwerk mechanischer Präzision. Genau hier beginnt unsere Reise durch 500 Jahre Ulmer Erfindergeist.",
+      fact:"Die astronomische Uhr zeigt bis heute die exakte Position der Sonne im Tierkreis an – ganz ohne Strom." },
+    en:{ name:"Ulm Town Hall", short:"Starting point: a Gothic town hall with an astronomical clock.",
+      detail:"Ulm's town hall was first mentioned in 1370 and later covered in vivid facade murals. Its most striking feature is the 1520 astronomical clock, which shows not just the time but moon phases and zodiac positions — an early masterpiece of mechanical precision. This is where our journey through 500 years of Ulm ingenuity begins.",
+      fact:"The astronomical clock still tracks the sun's exact position in the zodiac — with no electricity at all." },
+    ko:{ name:"울름 시청사", short:"투어의 출발점: 천문시계가 있는 고딕 양식의 시청사입니다.",
+      detail:"울름 시청사는 1370년에 처음 언급되었으며, 이후 화려한 벽화로 파사드를 장식했습니다. 가장 눈에 띄는 것은 1520년에 만들어진 천문시계로, 시각뿐 아니라 달의 위상과 별자리의 위치까지 보여주는 초기 기계 정밀 공학의 걸작입니다. 바로 이곳에서 울름의 500년 발명 정신을 따라가는 우리의 여정이 시작됩니다.",
+      fact:"이 천문시계는 전기 없이도 오늘날까지 태양의 정확한 별자리 위치를 보여줍니다." } },
+
+  { id:2, icon:'ic-rocket', duration:10, walkMin:5, walkM:350,
+    de:{ name:"Einstein-Brunnen", short:"Ein Igel-Brunnen als schrulliges Denkmal für Albert Einstein.",
+      detail:"Albert Einstein wurde 1879 in Ulm geboren, verließ die Stadt aber schon als Kleinkind. 1984 schuf der Bildhauer Jürgen Goertz diesen ungewöhnlichen Brunnen: eine Rakete aus Schrott, gekrönt von einem Igel, der dem berühmten Einstein-Foto mit herausgestreckter Zunge nachempfunden ist. Kein Denkmal im klassischen Sinne, sondern ein Denkanstoß zum Schmunzeln.",
+      fact:"Der Igel wurde bewusst gewählt, weil er Einsteins zerzauster Frisur ähnelt – und weil Einstein Autoritäten gerne 'stachelig' begegnete." },
+    en:{ name:"Einstein Fountain", short:"A tongue-out hedgehog fountain honoring Albert Einstein.",
+      detail:"Albert Einstein was born in Ulm in 1879, though his family moved away when he was just an infant. In 1984, sculptor Jürgen Goertz created this unconventional fountain: a scrap-metal rocket topped with a hedgehog sticking out its tongue, echoing Einstein's iconic photograph. It's less a solemn monument than a wink at genius and mischief combined.",
+      fact:"The hedgehog was chosen because its spiky look nods to Einstein's untamed hair — and his famously prickly relationship with authority." },
+    ko:{ name:"아인슈타인 분수", short:"혀를 내민 고슴도치 조각으로 아인슈타인을 기리는 독특한 분수입니다.",
+      detail:"알베르트 아인슈타인은 1879년 울름에서 태어났지만, 아직 어릴 때 가족과 함께 도시를 떠났습니다. 1984년 조각가 위르겐 괴르츠는 이 독특한 분수를 만들었습니다. 폐철로 만든 로켓 위에, 혀를 내민 아인슈타인의 유명한 사진을 연상시키는 고슴도치가 올라가 있습니다.",
+      fact:"고슴도치가 선택된 이유는 삐죽삐죽한 모습이 아인슈타인의 헝클어진 머리를 닮았고, 권위에 순응하지 않았던 그의 성격과도 잘 맞기 때문입니다." } },
+
+  { id:3, icon:'ic-house', duration:12, walkMin:4, walkM:300,
+    de:{ name:"Fischerviertel", short:"Schiefe Fachwerkhäuser über den alten Mühlkanälen der Blau.",
+      detail:"Im Fischer- und Gerberviertel arbeiteten jahrhundertelang Fischer, Gerber und Müller direkt an den Kanälen der Blau. Die schiefen Häuser sind keine Ruinen, sondern das Ergebnis über 600 Jahre alter Holzkonstruktionen, die sich durch Feuchtigkeit und Setzung verzogen haben – ein eindrückliches Zeugnis vormoderner Baukunst und Wasserwirtschaft.",
+      fact:"Das 'Schiefe Haus' im Viertel gilt als eines der am stärksten geneigten bewohnten Häuser Europas – und ist heute ein Hotel." },
+    en:{ name:"Fishermen's Quarter", short:"Crooked half-timbered houses above the old mill canals of the Blau.",
+      detail:"For centuries, fishermen, tanners, and millers worked along the canals of the Blau river in this district. The tilted houses aren't ruins — they're the result of over 600 years of timber construction settling and warping through moisture, a striking testament to pre-modern engineering and water management.",
+      fact:"The district's 'Crooked House' is considered one of the most tilted inhabited buildings in Europe — and today it operates as a hotel." },
+    ko:{ name:"피셔비어텔 (어부 마을)", short:"블라우 강 물레방아 운하 위에 자리한, 기울어진 목골 가옥들의 거리입니다.",
+      detail:"수백 년 동안 어부, 가죽 세공인, 방앗간 주인들이 블라우 강의 운하를 따라 이 지역에서 일했습니다. 기울어진 집들은 폐허가 아니라, 600년이 넘는 목조 건축물이 습기와 지반 침하로 서서히 기울어진 결과입니다.",
+      fact:"이 지역의 '기울어진 집(Schiefes Haus)'은 유럽에서 가장 많이 기울어진 거주용 건물 중 하나로 꼽히며, 현재는 호텔로 운영되고 있습니다." } },
+
+  { id:4, icon:'ic-tower', duration:10, walkMin:6, walkM:450,
+    de:{ name:"Metzgerturm", short:"Ulms 'Schiefer Turm': ein 700 Jahre altes Statik-Kuriosum.",
+      detail:"Der Metzgerturm wurde um 1345 als Teil der Stadtbefestigung errichtet und diente der Zunft der Metzger zur Verteidigung. Durch die weiche, feuchte Bausubstanz am Ufer der Blau begann der Turm schon kurz nach seiner Fertigstellung sich zu neigen – heute weicht er etwa 2 Meter von der Senkrechten ab. Anstatt ihn zu begradigen, ließ man ihn stehen: ein ungeplantes, aber lehrreiches Experiment zur Statik von Baugrund.",
+      fact:"Der Legende nach durften Metzger, die schlechtes Fleisch verkauften, vom Turm in die Blau getaucht werden." },
+    en:{ name:"Butchers' Tower", short:"Ulm's 'Leaning Tower': a 700-year-old case study in structural engineering.",
+      detail:"The Butchers' Tower was built around 1345 as part of the city's fortifications and defended by the butchers' guild. Because of the soft, damp ground near the Blau river, the tower began tilting shortly after completion — today it leans roughly 2 meters off vertical. Rather than correcting it, the city simply let it stand: an unplanned but instructive case study in foundation engineering.",
+      fact:"Legend has it that butchers caught selling spoiled meat were dunked from the tower into the river below." },
+    ko:{ name:"메츠거투름 (정육점 탑)", short:"700년 된 구조 공학의 흥미로운 사례, 울름의 '피사의 사탑'입니다.",
+      detail:"메츠거투름(정육점탑)은 1345년경 도시 방어 시설의 일부로 세워졌으며 정육업 조합이 관리했습니다. 블라우 강 근처의 부드럽고 습한 지반 때문에 완공 직후부터 탑이 기울기 시작했고, 오늘날에는 수직에서 약 2미터나 벗어나 있습니다.",
+      fact:"전설에 따르면 상한 고기를 판 정육업자는 이 탑에서 강물로 던져지는 벌을 받았다고 합니다." } },
+
+  { id:5, icon:'ic-spire', duration:20, walkMin:6, walkM:500,
+    de:{ name:"Ulmer Münster", short:"Der höchste Kirchturm der Welt: 161,5 m Gotik und über 500 Jahre Bauzeit.",
+      detail:"Der Grundstein des Ulmer Münsters wurde 1377 gelegt, doch der markante Turm wurde erst 1890 fertiggestellt – über 500 Jahre Bauzeit. Mit 161,53 Metern überragt er sogar den Kölner Dom und ist bis heute der höchste Kirchturm der Welt. Wer die 768 Stufen zur Turmplattform erklimmt, erlebt, wie gotische Baumeister Kräfte und Lasten mit Strebepfeilern und Maßwerk in beeindruckende Höhen trugen. (Für den Aufstieg zusätzlich ca. 30–45 Min. einplanen.)",
+      fact:"Bei klarer Sicht sind von der Turmspitze aus die Alpen zu sehen – über 100 Kilometer entfernt." },
+    en:{ name:"Ulm Minster", short:"The world's tallest church steeple: 161.5 m of Gothic engineering over 500+ years.",
+      detail:"Ulm Minster's foundation stone was laid in 1377, but its iconic tower wasn't completed until 1890 — over five centuries later. At 161.53 meters, it surpasses even Cologne Cathedral and remains the tallest church steeple in the world today. Climbing the 768 steps to the viewing platform reveals how Gothic builders channeled immense structural loads skyward through buttresses and tracery. (Allow an extra 30–45 min. if you climb the tower.)",
+      fact:"On a clear day, the Alps are visible from the tower's viewing platform — over 100 kilometers away." },
+    ko:{ name:"울름 대성당", short:"세계에서 가장 높은 교회 첨탑: 500년 넘게 지어진 161.5m의 고딕 공학.",
+      detail:"울름 대성당의 초석은 1377년에 놓였지만, 상징적인 첨탑은 1890년에야 완성되었습니다. 무려 500년이 넘는 공사 기간입니다. 161.53미터의 높이로 쾰른 대성당보다도 높으며, 오늘날까지 세계에서 가장 높은 교회 첨탑으로 남아 있습니다. (첨탑에 오르실 경우 30~45분 정도 추가로 소요됩니다.)",
+      fact:"날씨가 맑은 날에는 전망대에서 100킬로미터 이상 떨어진 알프스산맥까지 보입니다." } },
+
+  { id:6, icon:'ic-figure', duration:15, walkMin:8, walkM:600,
+    de:{ name:"Museum Ulm – Löwenmensch", short:"Zuhause des Löwenmenschen: rund 40.000 Jahre alte Elfenbeinkunst.",
+      detail:"Im Museum Ulm wird der 'Löwenmensch' aufbewahrt – eine nur 31 Zentimeter kleine Elfenbeinschnitzerei aus der Stadel-Höhle bei Ulm. Mit einem Alter von etwa 40.000 Jahren zählt sie zu den ältesten Belegen für abstraktes, symbolisches Denken des Menschen überhaupt. Steinzeitliche Jäger und Sammler schufen hier – lange vor Schrift oder Rad – bereits Kunst, die Mensch und Tier zu einem Fabelwesen verschmilzt.",
+      fact:"Die Herstellung des Löwenmenschen dauerte schätzungsweise 400 Arbeitsstunden – mit Steinwerkzeugen." },
+    en:{ name:"Museum Ulm – Lion Man", short:"Home to the Lion Man: roughly 40,000-year-old ivory sculpture.",
+      detail:"Museum Ulm houses the 'Lion Man,' a mere 31-centimeter ivory carving found in the Stadel Cave near Ulm. At around 40,000 years old, it stands among the earliest known evidence of abstract, symbolic human thought. Stone-age hunter-gatherers created art here — long before writing or the wheel — fusing human and animal into a single mythical figure.",
+      fact:"Carving the Lion Man is estimated to have taken around 400 hours of work — using only stone tools." },
+    ko:{ name:"울름 박물관 – 라이온맨", short:"약 4만 년 전 상아 조각품, 라이온맨이 소장된 박물관입니다.",
+      detail:"울름 박물관에는 울름 인근 슈타델 동굴에서 발견된 '라이온맨'이 소장되어 있습니다. 높이는 겨우 31센티미터에 불과하지만, 약 4만 년 전에 만들어져 인류의 추상적이고 상징적인 사고를 보여주는 가장 오래된 증거 중 하나로 꼽힙니다.",
+      fact:"라이온맨을 조각하는 데는 석기만을 사용해 약 400시간이 걸렸을 것으로 추정됩니다." } },
+
+  { id:7, icon:'ic-river', duration:15, walkMin:0, walkM:0,
+    de:{ name:"Donauufer", short:"Zielpunkt: die Promenade, wo Ulms Geschichte auf die Science City trifft.",
+      detail:"Am Ufer der Donau endet unsere Tour mit einem Blick über den Fluss, der Ulm über Jahrhunderte mit Handel und Ideen verband. Die Stadt setzt ihre Tradition der Wissenschaft bis heute fort: Die Universität Ulm und zahlreiche Forschungsinstitute in unmittelbarer Nähe machen Ulm zu einem Zentrum für Medizintechnik, Nanotechnologie und Batterieforschung. Von Einsteins Geburtsstadt zur modernen 'Science City' – ein guter Ort, um die Tour ausklingen zu lassen.",
+      fact:"Ulm beherbergt heute eines der größten Batterieforschungszentren Europas – nur wenige Kilometer von Einsteins Geburtshaus entfernt." },
+    en:{ name:"Danube Riverside", short:"The finale: the promenade where Ulm's history meets its modern science city.",
+      detail:"Our tour ends on the banks of the Danube, the river that connected Ulm to trade and ideas for centuries. The city carries its scientific tradition forward today: Ulm University and numerous research institutes nearby have made it a hub for medical technology, nanotechnology, and battery research. From Einstein's birthplace to a modern 'science city' — a fitting place to let the journey settle.",
+      fact:"Ulm today hosts one of Europe's largest battery research centers — just a few kilometers from Einstein's birthplace." },
+    ko:{ name:"다뉴브강변", short:"울름의 역사와 현대 과학 도시가 만나는 마지막 장소입니다.",
+      detail:"우리의 투어는 수 세기 동안 울름을 교역과 사상의 중심지로 이어준 다뉴브강변에서 마무리됩니다. 울름은 오늘날까지도 과학 전통을 이어가고 있습니다. 인근의 울름 대학교와 여러 연구기관들은 이 도시를 의료 기술, 나노기술, 배터리 연구의 중심지로 만들었습니다.",
+      fact:"울름은 오늘날 유럽에서 가장 큰 배터리 연구 센터 중 하나를 보유하고 있으며, 이는 아인슈타인의 생가에서 불과 몇 킬로미터 거리에 있습니다." } }
+];
+
+/* icon swap map — active only when Korean/anime mode is on */
+const animeIconMap = {
+  'ic-clock':'ic-clock-ko', 'ic-rocket':'ic-rocket-ko', 'ic-house':'ic-house-ko',
+  'ic-tower':'ic-tower-ko', 'ic-spire':'ic-spire-ko', 'ic-figure':'ic-figure-ko',
+  'ic-river':'ic-river-ko', 'ic-walk':'ic-walk-ko'
+};
+function iconFor(id, lang){ return (lang === 'ko' && animeIconMap[id]) ? animeIconMap[id] : id; }
+
+/* ===================== UI STRINGS ===================== */
+const translations = {
+  de: {
+    meta:{ title:"Ulm Wissenschaftstour" },
+    hero:{ eyebrow:"Ein Rundgang zu Fuß · 7 Stationen", title:"Ulm entdecken: Zeit, Genie und Erfindergeist",
+      subtitle:"Eine Stadtführung entlang der Orte, an denen Ulm über Jahrhunderte Wissenschaft und Technik geprägt hat – vom astronomischen Rathaus bis zur modernen Science City.",
+      ctaPrimary:"Tour starten", ctaSecondary:"Route ansehen" },
+    stats:{ duration:"Gesamtdauer", distance:"Gehstrecke", stops:"Stationen", startPoint:"Startpunkt" },
+    diagram:{ heading:"Die Route auf einen Blick", sub:"Sieben Stationen für ca. 2 Stunden. Tippe auf eine Station, um dort direkt in die Tour einzusteigen.", go:"Los →" },
+    tour:{ backLink:"Übersicht", prev:"Zurück", next:"Nächste Station", finish:"Zur Übersicht",
+      progress:"Station {cur} von {total}", factLabel:"Wusstest du schon?", nextWalk:"{min} Min. Gehzeit · {dist} bis zur nächsten Station",
+      lastStop:"Letzte Station – geschafft!" },
+    footer:{ text:"Viel Freude auf deiner Tour durch Ulm!" }
+  },
+  en: {
+    meta:{ title:"Ulm Science Trail" },
+    hero:{ eyebrow:"A walking tour · 7 stops", title:"Discover Ulm: Time, Genius, and Invention",
+      subtitle:"A walking tour through the places where Ulm has shaped science and technology for centuries — from the astronomical town hall to the modern science city.",
+      ctaPrimary:"Start the tour", ctaSecondary:"View the route" },
+    stats:{ duration:"Total duration", distance:"Walking distance", stops:"Stops", startPoint:"Starting point" },
+    diagram:{ heading:"The route at a glance", sub:"Seven stops over roughly 2 hours. Tap a stop to jump straight into the tour there.", go:"Go →" },
+    tour:{ backLink:"Overview", prev:"Back", next:"Next stop", finish:"Back to overview",
+      progress:"Stop {cur} of {total}", factLabel:"Did you know?", nextWalk:"{min} min walk · {dist} to the next stop",
+      lastStop:"Final stop – you made it!" },
+    footer:{ text:"Enjoy your walk through Ulm!" }
+  },
+  ko: {
+    meta:{ title:"울름 과학 탐방로" },
+    hero:{ eyebrow:"도보 투어 · 7개 정거장", title:"울름 탐험: 시간, 천재성, 그리고 발명",
+      subtitle:"울름이 수 세기 동안 과학과 기술을 만들어온 장소들을 따라가는 도보 투어입니다 - 천문시계가 있는 시청사에서 현대 과학 도시까지.",
+      ctaPrimary:"투어 시작하기", ctaSecondary:"경로 보기" },
+    stats:{ duration:"총 소요 시간", distance:"도보 거리", stops:"정거장", startPoint:"출발 지점" },
+    diagram:{ heading:"한눈에 보는 경로", sub:"약 2시간 동안 이어지는 7개의 정거장입니다. 정거장을 탭하면 그곳에서 투어를 바로 시작할 수 있습니다.", go:"시작 →" },
+    tour:{ backLink:"개요", prev:"이전", next:"다음 장소", finish:"개요로 돌아가기",
+      progress:"{cur} / {total} 번째 정거장", factLabel:"알고 계셨나요?", nextWalk:"도보 {min}분 · 다음 장소까지 {dist}",
+      lastStop:"마지막 정거장입니다 - 완주하셨습니다!" },
+    footer:{ text:"울름 산책을 즐겨보세요!" }
+  }
+};
+
+/* ===================== STATE ===================== */
+const state = { lang:'de', mode:'overview', current:0 };
+const needleAngles = { de:0, en:120, ko:240 };
+
+function getPath(obj, path){ return path.split('.').reduce((o,k)=> (o && o[k] !== undefined) ? o[k] : null, obj); }
+
+function formatDuration(min, lang){
+  const h = Math.floor(min/60), m = min%60;
+  if(lang === 'de') return h ? `${h} Std ${m ? m+' Min' : ''}`.trim() : `${m} Min`;
+  if(lang === 'ko') return h ? `${h}시간 ${m ? m+'분' : ''}`.trim() : `${m}분`;
+  return h ? `${h}h ${m ? m+'m' : ''}`.trim() : `${m}m`;
+}
+
+/* ---- build dial ticks once ---- */
+(function buildTicks(){
+  const wrap = document.getElementById('dialTicks');
+  const majors = [0,120,240];
+  for(let deg=0; deg<360; deg+=15){
+    const t = document.createElement('div');
+    t.className = 'tick' + (majors.includes(deg) ? ' major' : '');
+    t.style.transform = `rotate(${deg}deg)`;
+    wrap.appendChild(t);
+  }
+})();
+
+/* ---- delightful detail: sparkle burst around the dial ---- */
+function spawnSparkles(){
+  const dial = document.getElementById('dial');
+  const glyphs = ['✦','✧','⋆','✺'];
+  const colors = ['#FF6FA5','#6C4FE0','#00947F','#FFB84D'];
+  for(let i=0;i<10;i++){
+    const el = document.createElement('span');
+    el.className = 'sparkle-particle';
+    el.textContent = glyphs[Math.floor(Math.random()*glyphs.length)];
+    const angle = Math.random()*Math.PI*2;
+    const dist = 40 + Math.random()*46;
+    el.style.left = (112 + Math.cos(angle)*24) + 'px';
+    el.style.top = (112 + Math.sin(angle)*24) + 'px';
+    el.style.setProperty('--dx', (Math.cos(angle)*dist) + 'px');
+    el.style.color = colors[i % colors.length];
+    el.style.fontSize = (11 + Math.random()*9) + 'px';
+    el.style.animationDelay = (Math.random()*0.15) + 's';
+    dial.appendChild(el);
+    setTimeout(()=> el.remove(), 1500);
+  }
+}
+
+/* ===================== RENDER ===================== */
+function render(){
+  const lang = state.lang;
+  const t = translations[lang];
+
+  document.documentElement.lang = lang;
+  document.documentElement.setAttribute('data-theme', lang === 'ko' ? 'anime' : 'classic');
+  document.title = t.meta.title;
+
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const val = getPath(t, el.getAttribute('data-i18n'));
+    if(val !== null) el.textContent = val;
+  });
+
+  document.querySelectorAll('.lang-btn').forEach(btn=>{
+    btn.setAttribute('aria-pressed', btn.dataset.lang === lang ? 'true' : 'false');
+  });
+  document.getElementById('needle').style.transform = `rotate(${needleAngles[lang]}deg)`;
+  document.getElementById('dialFaceUse').setAttribute('href', '#' + iconFor('ic-clock', lang));
+
+  const totalStopMin = stations.reduce((s,x)=> s + x.duration, 0);
+  const totalWalkMin = stations.reduce((s,x)=> s + x.walkMin, 0);
+  const totalDist = stations.reduce((s,x)=> s + x.walkM, 0);
+  document.getElementById('statDuration').textContent = formatDuration(totalStopMin + totalWalkMin, lang);
+  document.getElementById('statDistance').textContent = (totalDist/1000).toFixed(1) + ' km';
+  document.getElementById('statStops').textContent = stations.length;
+  document.getElementById('statStart').textContent = stations[0][lang].name;
+
+  renderFlow(lang, t);
+  document.body.classList.toggle('mode-tour', state.mode === 'tour');
+  if(state.mode === 'tour') renderTour(lang, t);
+}
+
+function renderFlow(lang, t){
+  const list = document.getElementById('flowList');
+  list.innerHTML = stations.map((s,i)=>{
+    const data = s[lang];
+    const node = `
+      <button class="flow-node" data-index="${i}">
+        <div class="flow-marker"><svg viewBox="0 0 24 24"><use href="#${iconFor(s.icon, lang)}"/></svg></div>
+        <div class="flow-body">
+          <div class="flow-text">
+            <span class="name">${i+1}. ${data.name}</span>
+            <span class="short">${data.short}</span>
+          </div>
+          <div class="flow-meta">
+            <span class="flow-duration">${formatDuration(s.duration, lang)}</span>
+            <span class="flow-go">${t.diagram.go}</span>
+          </div>
+        </div>
+      </button>`;
+    const walk = (i < stations.length - 1) ? `
+      <div class="walk-link">
+        <svg viewBox="0 0 24 24"><use href="#${iconFor('ic-walk', lang)}"/></svg>
+        <span>${t.tour.nextWalk.replace('{min}', s.walkMin).replace('{dist}', s.walkM + ' m')}</span>
+      </div>` : '';
+    return node + walk;
+  }).join('');
+
+  list.querySelectorAll('.flow-node').forEach(btn=>{
+    btn.addEventListener('click', ()=> enterTour(Number(btn.dataset.index)));
+  });
+}
+
+function renderTour(lang, t){
+  const i = state.current;
+  const s = stations[i];
+  const data = s[lang];
+
+  document.getElementById('tourProgressLabel').textContent = t.tour.progress.replace('{cur}', i+1).replace('{total}', stations.length);
+  document.getElementById('progressFill').style.width = `${((i+1)/stations.length)*100}%`;
+  document.getElementById('tourIconUse').setAttribute('href', '#' + iconFor(s.icon, lang));
+  document.getElementById('tourWalkIconUse').setAttribute('href', '#' + iconFor('ic-walk', lang));
+  document.getElementById('tourName').textContent = `${i+1}. ${data.name}`;
+  document.getElementById('tourDurationBadge').textContent = '⏱ ' + formatDuration(s.duration, lang);
+  document.getElementById('tourShort').textContent = data.short;
+  document.getElementById('tourDetail').textContent = data.detail;
+  document.getElementById('factLabel').textContent = t.tour.factLabel;
+  document.getElementById('tourFact').textContent = data.fact;
+
+  const walkBadge = document.getElementById('tourWalkBadge');
+  const nextWalk = document.getElementById('tourNextWalk');
+  if(i < stations.length - 1){
+    walkBadge.style.display = '';
+    walkBadge.textContent = `🚶 ${s.walkMin} min · ${s.walkM} m`;
+    nextWalk.style.display = 'flex';
+    document.getElementById('tourNextWalkText').textContent = t.tour.nextWalk.replace('{min}', s.walkMin).replace('{dist}', s.walkM + ' m');
+  } else {
+    walkBadge.style.display = 'none';
+    nextWalk.style.display = 'none';
+  }
+
+  document.getElementById('prevBtn').disabled = (i === 0);
+  const nextBtn = document.getElementById('nextBtn');
+  const nextLabel = document.getElementById('nextBtnLabel');
+  if(i === stations.length - 1){
+    nextLabel.textContent = t.tour.finish;
+    nextBtn.onclick = exitTour;
+  } else {
+    nextLabel.textContent = t.tour.next + ' →';
+    nextBtn.onclick = ()=> goTo(i+1);
+  }
+
+  const dots = document.getElementById('dots');
+  dots.innerHTML = stations.map((_,idx)=>`<button class="dot ${idx===i?'active':''}" data-idx="${idx}" aria-label="${idx+1}"></button>`).join('');
+  dots.querySelectorAll('.dot').forEach(d=> d.addEventListener('click', ()=> goTo(Number(d.dataset.idx))));
+
+  const icon = document.getElementById('tourIcon');
+  icon.classList.remove('bounce');
+  void icon.offsetWidth;
+  icon.classList.add('bounce');
+}
+
+function goTo(index){
+  state.current = index;
+  render();
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+function enterTour(index){
+  state.mode = 'tour';
+  state.current = index;
+  render();
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+function exitTour(){
+  state.mode = 'overview';
+  render();
+  document.getElementById('diagram').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+document.querySelectorAll('.lang-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const changed = state.lang !== btn.dataset.lang;
+    state.lang = btn.dataset.lang;
+    render();
+    const face = document.getElementById('dialFace');
+    face.classList.remove('flash'); void face.offsetWidth; face.classList.add('flash');
+    if(changed && state.lang === 'ko') spawnSparkles();
+  });
+});
+document.getElementById('ctaStart').addEventListener('click', ()=> enterTour(0));
+document.getElementById('ctaDiagram').addEventListener('click', ()=>{
+  document.getElementById('diagram').scrollIntoView({ behavior:'smooth', block:'start' });
+});
+document.getElementById('backToOverview').addEventListener('click', exitTour);
+document.getElementById('prevBtn').addEventListener('click', ()=> goTo(state.current - 1));
+
+render();
+</script>
+</body>
+</html>
